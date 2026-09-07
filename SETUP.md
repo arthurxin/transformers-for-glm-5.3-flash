@@ -44,11 +44,35 @@ image. Note some entries are not installable from public indexes:
 
 | package | version | note |
 |---|---|---|
-| `sglang` | `0.0.0.dev1+gf609d677b` | built from source in-image |
-| `sglang-kernel` | `0.4.6.post1` | prebuilt wheel, CUDA-13 specific |
+| `sglang` | `0.0.0.dev1+gf609d677b` | **public** commit `f609d677b909` — installable, see below |
+| `sglang-kernel` | `0.4.6.post1` | on PyPI |
+| `sglang-router` | `0.3.2` | on PyPI |
 | `sgl-deep-ep` | `0.1.2` | from `docs.sglang.ai/whl/cu129` |
 | `mscclpp` | `0.9.1` | compiled in-image with custom `CMAKE_ARGS` |
 | `nixl` | `1.4.0` | `nixl-cu13` variant |
+
+### sglang is NOT patched
+
+Unlike transformers, the sglang in this image comes from the **public** repo.
+The image builds it via `COPY sglang-src/` (a CI convenience so the build never
+needs network), but the version string encodes a real public commit:
+
+```
+sglang==0.0.0.dev1+gf609d677b  ->  sgl-project/sglang @ f609d677b909
+  "fix(glm5_next): drop dead declare_load_time_override import"  (2026-08-25)
+```
+
+That tree already contains `python/sglang/srt/models/glm5_next.py` and
+`glm5_next_nextn.py`, so no fork is needed:
+
+```bash
+pip install --no-deps \
+  "git+https://github.com/sgl-project/sglang.git@f609d677b909#subdirectory=python"
+```
+
+transformers is the **only** package in the manifest that cannot be obtained
+from a public index — GLM-5-Next model definitions were not upstreamed to
+HuggingFace, which is why this repo exists.
 
 ## Environment versions (from image config)
 
